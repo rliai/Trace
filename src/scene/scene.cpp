@@ -85,7 +85,9 @@ bool Geometry::intersect(const ray&r, isect&i) const
     ray localRay( pos, dir );
 
     if (intersectLocal(localRay, i)) {
-        // Transform the intersection point & normal returned back into global space.
+        
+		//return false;
+		// Transform the intersection point & normal returned back into global space.
 		i.N = transform->localToGlobalCoordsNormal(i.N);
 		i.t /= length;
 
