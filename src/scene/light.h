@@ -49,4 +49,5 @@ protected:
 	vec3f position;
 };
 
+
 #endif // __LIGHT_H__

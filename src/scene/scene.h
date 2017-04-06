@@ -265,6 +265,18 @@ public:
 	bool intersect( const ray& r, isect& i ) const;
 	void initScene();
 
+	
+
+	void setAmbient(vec3f AmbientLight) {
+		m_Ambient = m_Ambient + AmbientLight;
+		m_Ambient.clamp();
+	}
+
+	vec3f getAmbient() const {
+		return m_Ambient;
+	}
+
+
 	list<Light*>::const_iterator beginLights() const { return lights.begin(); }
 	list<Light*>::const_iterator endLights() const { return lights.end(); }
         
@@ -283,6 +295,8 @@ private:
 	// must fall within this bounding box.  Objects that don't have hasBoundingBoxCapability()
 	// are exempt from this requirement.
 	BoundingBox sceneBounds;
+
+	vec3f m_Ambient;
 };
 
 #endif // __SCENE_H__

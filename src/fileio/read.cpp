@@ -524,14 +524,21 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 		scene->add( new DirectionalLight( scene, 
 			tupleToVec( getField( child, "direction" ) ).normalize(),
 			tupleToVec( getColorField( child ) ) ) );
-	} else if( name == "point_light" ) {
-		if( child == NULL ) {
-			throw ParseError( "No info for point_light" );
+	}
+	else if (name == "point_light") {
+		if (child == NULL) {
+			throw ParseError("No info for point_light");
 		}
 
-		scene->add( new PointLight( scene, 
-			tupleToVec( getField( child, "position" ) ),
-			tupleToVec( getColorField( child ) ) ) );
+		scene->add(new PointLight(scene,
+			tupleToVec(getField(child, "position")),
+			tupleToVec(getColorField(child))));
+	} else if (name == "ambient_light") {
+		if (child == NULL) {
+			throw ParseError("No info for ambient_light");
+		}
+		scene->setAmbient(tupleToVec(getColorField(child)));
+			
 	} else if( 	name == "sphere" ||
 				name == "box" ||
 				name == "cylinder" ||
