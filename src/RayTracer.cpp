@@ -9,6 +9,9 @@
 #include "fileio/read.h"
 #include "fileio/parse.h"
 
+#include "ui/TraceUI.h"
+
+extern TraceUI* traceUI;
 // Trace a top-level ray through normalized window coordinates (x,y)
 // through the projection plane, and out into the scene.  All we do is
 // enter the main ray-tracing method, getting things started by plugging
@@ -22,33 +25,58 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
-vec3f RayTracer::traceRay( Scene *scene, const ray& r, 
-	const vec3f& thresh, int depth )
+
+
+
+
+vec3f RayTracer::traceRay(Scene *scene, const ray& r,
+	const vec3f& thresh, int depth, bool isSpace)
+
 {
 	isect i;
 
-	if( scene->intersect( r, i ) ) {
-		// YOUR CODE HERE
-
-		// An intersection occured!  We've got work to do.  For now,
-		// this code gets the material for the surface that was intersected,
-		// and asks that material to provide a color for the ray.  
-
-		// This is a great place to insert code for recursive ray tracing.
-		// Instead of just returning the result of shade(), add some
-		// more steps: add in the contributions from reflected and refracted
-		// rays.
-
-		const Material& m = i.getMaterial();
-		return m.shade(scene, r, i);
 	
-	} else {
-		// No intersection.  This ray travels to infinity, so we color
+	if (scene->intersect(r, i)) {
+		const Material& m = i.getMaterial();
+		vec3f shade = m.shade(scene, r, i);
+		if (depth >= traceUI->getDepth()) {
+			return shade;
+		}
+
+		vec3f isectPoint = r.at(i.t);
+
+		if (!i.getMaterial().kr.iszero()) {
+			// new ray start point & reflection direction
+			vec3f reflectDir = 2 * (i.N*-r.getDirection()) * i.N - (-r.getDirection());
+			// reflection part
+			ray reflectRay = ray(isectPoint, reflectDir);
+			shade += prod(m.ks, traceRay(scene, reflectRay, thresh, depth + 1, isSpace));
+		}
+
+
+		// refraction part
+
+		if (!i.getMaterial().kt.iszero()) {
+			double index_ratio = isSpace ? (1.0 / i.getMaterial().index) : i.getMaterial().index;
+			double cos_angle1 = -i.N * r.getDirection();
+			double sinSquare_angle2 = index_ratio*index_ratio*(1 - cos_angle1* cos_angle1);
+			double cosSquare_angle2 = 1 - sinSquare_angle2;
+			if (cosSquare_angle2 >= 0) {
+				// no absolute reflection
+				vec3f refractDir = (index_ratio * cos_angle1 - sqrt(cosSquare_angle2)) * i.N - index_ratio * -r.getDirection();
+				ray refractRay = ray(isectPoint, refractDir);
+				shade += prod(m.ks, traceRay(scene, refractRay, thresh, depth + 1, !isSpace));
+			}
+		}
+		return shade;
+	}
+	else {
+		// No intersection. This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case
 		// is just black.
-
-		return vec3f( 0.0, 0.0, 0.0 );
+		return vec3f(0.0, 0.0, 0.0);
 	}
+
 }
 
 RayTracer::RayTracer()
