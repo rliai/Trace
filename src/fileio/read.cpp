@@ -530,9 +530,19 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 			throw ParseError("No info for point_light");
 		}
 
-		scene->add(new PointLight(scene,
+		PointLight* light = new PointLight(scene,
 			tupleToVec(getField(child, "position")),
-			tupleToVec(getColorField(child))));
+			tupleToVec(getColorField(child)));
+		scene->add(light);
+		if (hasField(child, "constant_attenuation_coeff") && hasField(child, "linear_attenuation_coeff")
+			&& hasField(child, "quadratic_attenuation_coeff"))
+		{
+			light->setDistanceAttenuation(
+				getField(child, "constant_attenuation_coeff")->getScalar(),
+				getField(child, "linear_attenuation_coeff")->getScalar(),
+				getField(child, "quadratic_attenuation_coeff")->getScalar());
+		}
+
 	} else if (name == "ambient_light") {
 		if (child == NULL) {
 			throw ParseError("No info for ambient_light");
