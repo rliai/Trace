@@ -28,8 +28,10 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 	for (list<Light*>::const_iterator j = scene->beginLights(); j != scene->endLights(); j++) {
 		dir2 = (*j)->getDirection(interp).normalize();
 		double theta = n.dot(dir2);
-	
-		double alpha = theta - n.dot(dir1);
+		vec3f rm = (2 * theta * n - dir2).normalize();
+		double alpha = rm * dir1;
+
+		
 		if (theta < 0) theta = 0;
 		if (alpha < 0) alpha = 0;
 		vec3f light = kd*theta + ks*pow(alpha, shininess*128.0);

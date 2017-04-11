@@ -43,6 +43,7 @@ public:
 		m_linear_coeff(0.0),
 		m_quadratic_coeff(0.0) {}
 	virtual vec3f shadowAttenuation(const vec3f& P) const;
+	vec3f _shadowAttenuation(const vec3f & P, const ray & r) const;
 	void setDistanceAttenuation(const double constant, const double linear, const double quadratic);
 	virtual double distanceAttenuation( const vec3f& P ) const;
 	virtual vec3f getColor( const vec3f& P ) const;
