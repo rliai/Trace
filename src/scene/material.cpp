@@ -18,8 +18,9 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
     // You will need to call both distanceAttenuation() and shadowAttenuation()
     // somewhere in your code in order to compute shadows and light falloff.
 	vec3f result, IA;
+	vec3f transparency = vec3f(1, 1, 1) - kt;
 	IA = scene->getAmbient();
-	IA = vec3f(IA[0] * ka[0], IA[1] * ka[1], IA[2] * ka[2]);
+	IA = vec3f(IA[0] * ka[0]*transparency[0], IA[1] * ka[1]*transparency[1], IA[2] * ka[2]*transparency[2]);
 	result = ke + IA;
 	vec3f interp = r.at(i.t);
 	vec3f sum, dir2;

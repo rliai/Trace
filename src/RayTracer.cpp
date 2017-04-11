@@ -42,12 +42,11 @@ vec3f RayTracer::traceRay(Scene *scene, const ray& r,
 		if (depth >= traceUI->getDepth()) {
 			return shade;
 		}
-
 		vec3f isectPoint = r.at(i.t);
 
 		if (!i.getMaterial().kr.iszero()) {
 			// new ray start point & reflection direction
-			vec3f reflectDir = 2 * (i.N*-r.getDirection()) * i.N - (-r.getDirection());
+			vec3f reflectDir = 2 * (i.N*-r.getDirection()) * i.N - (-r.getDirection()).normalize();
 			// reflection part
 			ray reflectRay = ray(isectPoint, reflectDir);
 			shade += prod(m.ks, traceRay(scene, reflectRay, thresh, depth + 1, isSpace));
@@ -55,19 +54,33 @@ vec3f RayTracer::traceRay(Scene *scene, const ray& r,
 
 
 		// refraction part
-
+		
 		if (!i.getMaterial().kt.iszero()) {
-			double index_ratio = isSpace ? (1.0 / i.getMaterial().index) : i.getMaterial().index;
-			double cos_angle1 = -i.N * r.getDirection();
-			double sinSquare_angle2 = index_ratio*index_ratio*(1 - cos_angle1* cos_angle1);
-			double cosSquare_angle2 = 1 - sinSquare_angle2;
-			if (cosSquare_angle2 >= 0) {
-				// no absolute reflection
-				vec3f refractDir = (index_ratio * cos_angle1 - sqrt(cosSquare_angle2)) * i.N - index_ratio * -r.getDirection();
-				ray refractRay = ray(isectPoint, refractDir);
-				shade += prod(m.ks, traceRay(scene, refractRay, thresh, depth + 1, !isSpace));
+			if (m.index == 1.0) {
+				ray refractRay(r.getDirection() * i.t + r.getPosition(), r.getDirection());
+				shade += prod(m.kt, traceRay(scene, refractRay, thresh, depth + 1, !isSpace));
+
+			}
+			else {
+				double index_ratio = isSpace ? (1.0 / m.index) : m.index;
+				double cos_angle1 = -i.N * r.getDirection();
+				double sinSquare_angle2 = index_ratio*index_ratio*(1 - cos_angle1* cos_angle1);
+				double cosSquare_angle2 = 1 - sinSquare_angle2;
+				if (cosSquare_angle2 >= 0) {
+					// no absolute reflection
+					vec3f refractDir = i.N * (index_ratio * cos_angle1 - sqrt(cosSquare_angle2)) - index_ratio * -r.getDirection();
+					ray refractRay = ray(isectPoint, refractDir.normalize());
+					vec3f temp = prod(m.kt, traceRay(scene, refractRay, thresh, depth + 1, !isSpace));
+					
+					shade += temp;
+					
+				}
+			
+			
+			
 			}
 		}
+
 		return shade;
 	}
 	else {
