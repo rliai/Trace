@@ -33,8 +33,8 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		if (theta < 0) theta = 0;
 		if (alpha < 0) alpha = 0;
 		vec3f light = kd*theta + ks*pow(alpha, shininess*128.0);
-		double atten = (*j)->distanceAttenuation(interp);
-		light = vec3f(light[0] * atten, light[1] * atten, light[2] * atten);
+		vec3f atten = ((*j)->distanceAttenuation(interp))*((*j)->shadowAttenuation(interp));
+		light = vec3f(light[0] * atten[0], light[1] * atten[1], light[2] * atten[2]);
 		sum = sum + light;
 	}
 	result = result + sum;

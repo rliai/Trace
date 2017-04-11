@@ -40,7 +40,7 @@ vec3f DirectionalLight::getDirection( const vec3f& P ) const
 
 double PointLight::distanceAttenuation( const vec3f& P ) const
 {
-	double d = sqrt((P - position).length_squared());
+	double d = (P - position).length();
 	
 	double result = 1/ (m_const_coeff + m_linear_coeff * d + m_quadratic_coeff * d * d);
 	if (result < 1) return result;
