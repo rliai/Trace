@@ -23,22 +23,25 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 	result = ke + IA;
 	vec3f interp = r.at(i.t);
 	vec3f sum, dir2;
-	vec3f dir1 = -r.getDirection().normalize();
-	vec3f n = i.N.normalize();
+	vec3f dir1 = -r.getDirection();
+	vec3f n = i.N;
 	for (list<Light*>::const_iterator j = scene->beginLights(); j != scene->endLights(); j++) {
-		dir2 = (*j)->getDirection(interp).normalize();
+		dir2 = (*j)->getDirection(interp);
 		double theta = n.dot(dir2);
 		vec3f rm = (2 * theta * n - dir2).normalize();
-		double alpha = rm * dir1;
+		double alpha = rm.dot(dir1);
 
 		
 		if (theta < 0) theta = 0;
 		if (alpha < 0) alpha = 0;
-		vec3f light = kd*theta + ks*pow(alpha, shininess*128.0);
-		vec3f atten = ((*j)->distanceAttenuation(interp))*((*j)->shadowAttenuation(interp));
+		vec3f light = kd*theta + ks*pow(alpha, shininess*128);
+		vec3f atten = ((*j)->distanceAttenuation(interp))*((*j)->shadowAttenuation(interp + i.N*RAY_EPSILON));
 		light = vec3f(light[0] * atten[0], light[1] * atten[1], light[2] * atten[2]);
+		light = prod(light, (*j)->getColor(interp));
+		
 		sum = sum + light;
 	}
 	result = result + sum;
+	
 	return result;
 }

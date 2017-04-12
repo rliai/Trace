@@ -16,7 +16,7 @@ vec3f DirectionalLight::shadowAttenuation( const vec3f& P ) const
 	vec3f curPoint = P;	
 	vec3f c = getColor(P);
 	ray r = ray(curPoint, dir);
-	while (scene->intersect(r, i))
+	if (scene->intersect(r, i))
 	{
 		
 		if (i.getMaterial().kt.iszero()) return vec3f(0, 0, 0);

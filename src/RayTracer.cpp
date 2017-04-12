@@ -39,6 +39,9 @@ vec3f RayTracer::traceRay(Scene *scene, const ray& r,
 	if (scene->intersect(r, i)) {
 		const Material& m = i.getMaterial();
 		vec3f shade = m.shade(scene, r, i);
+		
+		vec3f transp = vec3f(1, 1, 1) - m.kt;
+		shade = prod(shade, transp);
 		if (depth >= traceUI->getDepth()) {
 			return shade;
 		}
@@ -65,7 +68,10 @@ vec3f RayTracer::traceRay(Scene *scene, const ray& r,
 				// no absolute reflection
 				vec3f refractDir = (index_ratio * cos_angle1 - sqrt(cosSquare_angle2)) * i.N - index_ratio * -r.getDirection();
 				ray refractRay = ray(isectPoint, refractDir);
-				shade += prod(m.ks, traceRay(scene, refractRay, thresh, depth + 1, !isSpace));
+				vec3f temp = prod(m.kt, traceRay(scene, refractRay, thresh, depth + 1, !isSpace));
+				if (!temp.iszero()) {
+					shade = shade + temp;
+				}
 			}
 		}
 		return shade;
